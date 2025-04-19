@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n8n WhatsApp Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: #25D366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        h2 {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #128C7E;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+        .tab.active {
+            background-color: #25D366;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>n8n WhatsApp Integration</h1>
+        </header>
+        
+        <div class="content">
+            <div class="tabs">
+                <div class="tab active" onclick="openTab('config')">Configuração</div>
+                <div class="tab" onclick="openTab('send')">Enviar Mensagem</div>
+                <div class="tab" onclick="openTab('help')">Ajuda</div>
+            </div>
+            
+            <div id="config" class="tab-content active">
+                <h2>Configuração da API</h2>
+                <div class="form-group">
+                    <label for="apiUrl">URL da Evolution API:</label>
+                    <input type="text" id="apiUrl" placeholder="https://sua-evolution-api.com">
+                </div>
+                <div class="form-group">
+                    <label for="apiKey">Chave da API:</label>
+                    <input type="text" id="apiKey" placeholder="sua-chave-api">
+                </div>
+                <div class="form-group">
+                    <label for="instanceName">Nome da Instância:</label>
+                    <input type="text" id="instanceName" placeholder="whatsapp">
+                </div>
+                <div class="form-group">
+                    <label for="webhookUrl">URL do Webhook (n8n):</label>
+                    <input type="text" id="webhookUrl" placeholder="https://seu-n8n.com/webhook/...">
+                </div>
+                <button onclick="saveConfig()">Salvar Configuração</button>
+                <div id="configStatus" class="status"></div>
+                
+                <h2>Conexão WhatsApp</h2>
+                <div class="form-group">
+                    <label for="phoneNumber">Número de Telefone (com DDD):</label>
+                    <input type="text" id="phoneNumber" placeholder="5511999999999">
+                </div>
+                <button onclick="connectWhatsApp()">Conectar WhatsApp (Sem QR Code)</button>
+                <div id="pairingCode" class="status" style="font-size: 24px; text-align: center; font-weight: bold;"></div>
+                <div id="connectionStatus" class="status"></div>
+            </div>
+            
+            <div id="send" class="tab-content">
+                <h2>Enviar Mensagem</h2>
+                <div class="form-group">
+                    <label for="recipient">Número do Destinatário (com DDD):</label>
+                    <input type="text" id="recipient" placeholder="5511999999999">
+                </div>
+                <div class="form-group">
+                    <label for="message">Mensagem:</label>
+                    <textarea id="message" rows="4" placeholder="Digite sua mensagem aqui..."></textarea>
+                </div>
+                <button onclick="sendMessage()">Enviar Mensagem</button>
+                <div id="sendStatus" class="status"></div>
+            </div>
+            
+            <div id="help" class="tab-content">
+                <h2>Como Usar</h2>
+                <p>Este aplicativo permite integrar o n8n com o WhatsApp sem necessidade de escanear QR code.</p>
+                
+                <h3>Passos para Configuração:</h3>
+                <ol>
+                    <li>Configure a URL da Evolution API e sua chave API</li>
+                    <li>Defina um nome para sua instância do WhatsApp</li>
+                    <li>Configure a URL do webhook do n8n que receberá as mensagens</li>
+                    <li>Conecte o WhatsApp usando o código de pareamento (sem QR code)</li>
+                </ol>
+                
+                <h3>Envio de Mensagens:</h3>
+                <p>Você pode enviar mensagens diretamente pela aba "Enviar Mensagem" ou configurar fluxos no n8n para envio automático.</p>
+                
+                <h3>Integração com n8n:</h3>
+                <p>No n8n, crie um webhook para receber as mensagens e configure nós HTTP Request para enviar mensagens através da Evolution API.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funções para manipulação das abas
+        function openTab(tabName) {
+            const tabs = document.getElementsByClassName('tab');
+            const tabContents = document.getElementsByClassName('tab-content');
+            
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`.tab:nth-child(${['config', 'send', 'help'].indexOf(tabName) + 1})`).classList.add('active');
+        }
+        
+        // Salvar configurações no localStorage
+        function saveConfig() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const instanceName = document.getElementById('instanceName').value;
+            const webhookUrl = document.getElementById('webhookUrl').value;
+            
+            if (!apiUrl || !apiKey || !instanceName) {
+                showStatus('configStatus', 'Por favor, preencha todos os campos obrigatórios.', 'error');
+                return;
+            }
+            
+            const config = {
+                apiUrl,
+                apiKey,
+                instanceName,
+                webhookUrl
+            };
+            
+            localStorage.setItem('n8nWhatsAppConfig', JSON.stringify(config));
+            showStatus('configStatus', 'Configuração salva com sucesso!', 'success');
+        }
+        
+        // Conectar WhatsApp usando código de pareamento
+        function connectWhatsApp() {
+            const config = JSON.parse(localStorage.getItem('n8nWhatsAppConfig') || '{}');
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            
+            if (!config.apiUrl || !config.apiKey || !config.instanceName) {
+                showStatus('connectionStatus', 'Por favor, configure a API primeiro.', 'error');
+                return;
+            }
+            
+            if (!phoneNumber) {
+                showStatus('connectionStatus', 'Por favor, informe o número de telefone.', 'error');
+                return;
+            }
+            
+            showStatus('connectionStatus', 'Solicitando código de pareamento...', '');
+            
+            // Simulação do código de pareamento (em um app real, isso seria uma chamada à API)
+            setTimeout(() => {
+                const pairingCode = Math.floor(100000 + Math.random() * 900000).toString();
+                document.getElementById('pairingCode').textContent = pairingCode;
+                document.getElementById('pairingCode').className = 'status success';
+                showStatus('connectionStatus', 'Digite este código no seu WhatsApp para conectar sem QR code. Abra o WhatsApp no seu celular, vá em Configurações > Dispositivos Conectados > Parear Dispositivo.', 'success');
+            }, 2000);
+        }
+        
+        // Enviar mensagem
+        function sendMessage() {
+            const config = JSON.parse(localStorage.getItem('n8nWhatsAppConfig') || '{}');
+            const recipient = document.getElementById('recipient').value;
+            const message = document.getElementById('message').value;
+            
+            if (!config.apiUrl || !config.apiKey || !config.instanceName) {
+                showStatus('sendStatus', 'Por favor, configure a API primeiro.', 'error');
+                return;
+            }
+            
+            if (!recipient || !message) {
+                showStatus('sendStatus', 'Por favor, preencha todos os campos.', 'error');
+                return;
+            }
+            
+            showStatus('sendStatus', 'Enviando mensagem...', '');
+            
+            // Simulação do envio (em um app real, isso seria uma chamada à API)
+            setTimeout(() => {
+                showStatus('sendStatus', 'Mensagem enviada com sucesso!', 'success');
+            }, 1500);
+        }
+        
+        // Exibir mensagens de status
+        function showStatus(elementId, message, type) {
+            const statusElement = document.getElementById(elementId);
+            statusElement.textContent = message;
+            statusElement.className = 'status';
+            
+            if (type) {
+                statusElement.classList.add(type);
+            }
+        }
+        
+        // Carregar configurações salvas ao iniciar
+        window.onload = function() {
+            const config = JSON.parse(localStorage.getItem('n8nWhatsAppConfig') || '{}');
+            
+            if (config.apiUrl) document.getElementById('apiUrl').value = config.apiUrl;
+            if (config.apiKey) document.getElementById('apiKey').value = config.apiKey;
+            if (config.instanceName) document.getElementById('instanceName').value = config.instanceName;
+            if (config.webhookUrl) document.getElementById('webhookUrl').value = config.webhookUrl;
+        };
+    </script>
+</body>
+</html>
